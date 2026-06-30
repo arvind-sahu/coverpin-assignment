@@ -4,7 +4,7 @@ A single-page analytics dashboard with Excel upload, built as a **Next.js (React
 
 ## Live demo
 
-> **AWS Amplify:** `https://main.<app-id>.amplifyapp.com` (see [CI/CD and deployment](#cicd-and-deployment))
+**AWS Amplify:** [https://main.d1y04k57dveds6.amplifyapp.com](https://main.d1y04k57dveds6.amplifyapp.com)
 
 ## Stack choice
 
