@@ -99,6 +99,13 @@ export async function parseExcelFile(file: File): Promise<ParseOutcome> {
     };
   }
 
+  if (file.size === 0) {
+    return {
+      success: false,
+      message: "The uploaded file is empty (0 bytes).",
+    };
+  }
+
   let workbook: XLSX.WorkBook;
   try {
     const buffer = await file.arrayBuffer();
