@@ -129,3 +129,23 @@ Here is a 4-phase roadmap to transition this project from a client-side prototyp
   * Integrate **Clerk** or **Auth0** for secure authentication.
   * Implement **Row-Level Security (RLS)** in PostgreSQL/ClickHouse to ensure users can only query and upload data for their own organization.
   * Configure **AWS WAF (Web Application Firewall)** to rate-limit uploads per IP address to prevent Denial of Service (DoS) attacks.
+
+---
+
+## 5. Future Scope & Advanced Capabilities (At Scale)
+
+Beyond scalability and performance, the following advanced capabilities can be integrated into the platform as it grows:
+
+### 1. Advanced Analytics & Machine Learning
+* **Demand Forecasting:** Use **Python (Pandas, Scikit-learn, Prophet)** or **AWS SageMaker** to forecast future sales trends, seasonal demand spikes, and predict inventory stockouts based on historical upload trends.
+* **Anomaly Detection:** Automatically flag suspicious orders (e.g., unusually high amounts, invalid address formats, or fraudulent patterns) using machine learning models before they are processed.
+* **Customer Segmentation:** Automatically group customers into cohorts (e.g., High-Value, At-Risk, New) using RFM (Recency, Frequency, Monetary) analysis to drive targeted marketing campaigns.
+
+### 2. Enterprise-Grade Security & Multi-Tenancy
+* **Multi-Tenancy:** Implement strict logical data isolation so that multiple organizations can use the same platform securely without seeing each other's data.
+* **Role-Based Access Control (RBAC):** Define granular user permissions—allowing administrators to upload and modify data, while managers have read-only access to dashboards, and analysts can export reports.
+* **Audit Logging:** Maintain a tamper-proof log of all file uploads, modifications, and exports for compliance and security auditing.
+
+### 3. Automated Integrations & Connectors
+* **Direct ERP Connectors:** Build direct integrations with popular ERP and e-commerce platforms (e.g., Shopify, WooCommerce, SAP, Salesforce) to automatically pull order data on a schedule, eliminating the need for manual Excel uploads.
+* **Automated Export Connectors:** Allow users to schedule automated PDF/CSV reports to be delivered directly to their email, Slack workspace, or an external S3 bucket.
