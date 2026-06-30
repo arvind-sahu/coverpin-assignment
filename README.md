@@ -20,6 +20,14 @@ A single-page analytics dashboard with Excel upload, built as a **Next.js (React
 
 For files up to ~2,000 rows, parsing in the browser avoids an API round-trip, keeps deployment to a static/SSR frontend only (free on Vercel), and updates the dashboard immediately after upload. A server-side parser would add latency and infrastructure for little gain at this scale.
 
+### Cross-Tab Synchronization and Persistence
+
+To ensure immediate data synchronization across multiple browser tabs without requiring full page reloads, we implemented a custom synchronization layer inside `src/context/OrdersContext.tsx`:
+1. **Persistence:** Uploaded orders, the active file name, and the state flag are saved to `localStorage` upon successful upload.
+2. **On-Mount Hydration:** When the app mounts, it checks for uploaded data in `localStorage` and loads it, ensuring that state is preserved across page refreshes and new tabs.
+3. **Cross-Tab Sync:** We listen to the native browser `storage` event. When an upload occurs in one browser tab, all other open tabs of the same origin receive this event and update their React state immediately, ensuring seamless real-time synchronization.
+4. **Reset to Sample Data:** A "Reset to Sample Data" button is provided on both the Dashboard and Upload tabs, allowing users to instantly clear `localStorage` and return to the default sample dataset across all tabs.
+
 ## Features
 
 - **Two tabs**: Dashboard · Upload Excel
@@ -99,6 +107,8 @@ This writes `public/sample-orders.xlsx`.
 5. **KPI % change** on revenue/orders cards compares the latest day in the data vs the previous day that has orders.
 6. **Currency** is displayed as USD regardless of source data.
 7. **Before upload**, the dashboard seeds with the brief’s 10-row sample dataset.
+8. **Empty File Validation:** Files with a size of 0 bytes are rejected immediately to prevent silent failures or parsing errors.
+9. **Flexible Column Mapping:** Header names are matched using a set of common aliases (e.g., `qty`, `quantity`, `units` map to `qty`). Required fields must be present, while optional fields are filled with sensible defaults (e.g., `customer` defaults to `"Unknown"`, `unitPrice` defaults to `amount / qty`, and `status` defaults to `"Pending"`).
 
 ## Project structure
 
