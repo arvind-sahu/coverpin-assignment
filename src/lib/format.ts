@@ -22,7 +22,8 @@ export function formatNumber(value: number): string {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
-export function formatPercent(value: number): string {
+export function formatPercent(value: number | undefined | null): string {
+  if (value === undefined || value === null || isNaN(value)) return "0.0%";
   const sign = value > 0 ? "+" : "";
   return `${sign}${value.toFixed(1)}%`;
 }

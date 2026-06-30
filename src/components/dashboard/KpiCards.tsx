@@ -2,9 +2,9 @@
 
 import {
   DollarSign,
-  Package,
+  Eye,
   ShoppingCart,
-  TrendingUp,
+  UserPlus,
 } from "lucide-react";
 import type { KpiMetrics } from "@/types/order";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/format";
@@ -15,36 +15,44 @@ interface KpiCardsProps {
 
 const CARDS = [
   {
-    key: "totalRevenue" as const,
-    label: "Total Revenue",
-    icon: DollarSign,
-    iconBg: "bg-emerald-100 text-emerald-600",
-    format: formatCurrency,
-    changeKey: "revenueChangePct" as const,
-  },
-  {
-    key: "totalOrders" as const,
-    label: "Total Orders",
-    icon: ShoppingCart,
-    iconBg: "bg-blue-100 text-blue-600",
+    key: "visitsToday" as const,
+    label: "Visits Today",
+    description: "Estimated site sessions",
+    icon: Eye,
+    accent: "from-sky-500 to-blue-600",
+    iconBg: "bg-sky-100 text-sky-600",
     format: formatNumber,
-    changeKey: "ordersChangePct" as const,
+    changeKey: "visitsChangePct" as const,
   },
   {
-    key: "totalUnits" as const,
-    label: "Products Sold",
-    icon: Package,
+    key: "newUsers" as const,
+    label: "New Users",
+    description: "Unique customers today",
+    icon: UserPlus,
+    accent: "from-violet-500 to-purple-600",
     iconBg: "bg-violet-100 text-violet-600",
     format: formatNumber,
-    changeKey: null,
+    changeKey: "newUsersChangePct" as const,
   },
   {
-    key: "avgOrderValue" as const,
-    label: "Avg Order Value",
-    icon: TrendingUp,
+    key: "newOrders" as const,
+    label: "New Orders",
+    description: "Orders placed today",
+    icon: ShoppingCart,
+    accent: "from-emerald-500 to-teal-600",
+    iconBg: "bg-emerald-100 text-emerald-600",
+    format: formatNumber,
+    changeKey: "newOrdersChangePct" as const,
+  },
+  {
+    key: "totalSales" as const,
+    label: "Total Sales",
+    description: "Sum of all order amounts",
+    icon: DollarSign,
+    accent: "from-amber-500 to-orange-600",
     iconBg: "bg-amber-100 text-amber-600",
     format: formatCurrency,
-    changeKey: null,
+    changeKey: "salesChangePct" as const,
   },
 ];
 
@@ -54,30 +62,35 @@ export function KpiCards({ metrics }: KpiCardsProps) {
       {CARDS.map((card) => {
         const Icon = card.icon;
         const value = metrics[card.key];
-        const change = card.changeKey ? metrics[card.changeKey] : null;
+        const change = metrics[card.changeKey];
+        const isPositive = change >= 0;
 
         return (
           <div
             key={card.key}
-            className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+            className="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
           >
-            <div className="flex items-start justify-between">
-              <div>
+            <div
+              className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${card.accent}`}
+            />
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-slate-500">{card.label}</p>
-                <p className="mt-2 text-2xl font-bold text-slate-900">
+                <p className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
                   {card.format(value)}
                 </p>
-                {change !== null && (
-                  <p
-                    className={`mt-1 text-xs font-medium ${
-                      change >= 0 ? "text-emerald-600" : "text-red-500"
-                    }`}
-                  >
-                    {formatPercent(change)} vs prior day
-                  </p>
-                )}
+                <p className="mt-1 text-xs text-slate-400">{card.description}</p>
+                <p
+                  className={`mt-3 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
+                    isPositive
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "bg-red-50 text-red-600"
+                  }`}
+                >
+                  {formatPercent(change)} vs yesterday
+                </p>
               </div>
-              <div className={`rounded-lg p-2.5 ${card.iconBg}`}>
+              <div className={`shrink-0 rounded-xl p-3 ${card.iconBg}`}>
                 <Icon className="h-5 w-5" />
               </div>
             </div>

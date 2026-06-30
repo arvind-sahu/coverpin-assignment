@@ -34,18 +34,23 @@ export interface ParseError {
 export type ParseOutcome = ParseResult | ParseError;
 
 export interface KpiMetrics {
-  totalRevenue: number;
-  totalOrders: number;
-  totalUnits: number;
-  avgOrderValue: number;
-  revenueChangePct: number;
-  ordersChangePct: number;
+  visitsToday: number;
+  newUsers: number;
+  newOrders: number;
+  totalSales: number;
+  visitsChangePct: number;
+  newUsersChangePct: number;
+  newOrdersChangePct: number;
+  salesChangePct: number;
 }
 
 export interface DayComparison {
   label: string;
+  visits: number;
+  newUsers: number;
+  newOrders: number;
+  bounceRate: number;
   revenue: number;
-  orders: number;
   units: number;
 }
 
@@ -53,6 +58,7 @@ export interface TodayYesterdayStats {
   today: DayComparison;
   yesterday: DayComparison;
   referenceDate: Date;
+  comparisonDate: Date;
 }
 
 export interface RevenuePoint {

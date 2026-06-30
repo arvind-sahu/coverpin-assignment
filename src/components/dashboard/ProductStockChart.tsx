@@ -1,14 +1,12 @@
 "use client";
 
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
   Cell,
+  Legend,
+  Pie,
+  PieChart,
   ResponsiveContainer,
   Tooltip,
-  XAxis,
-  YAxis,
 } from "recharts";
 import type { CategoryStock } from "@/types/order";
 import { formatNumber } from "@/lib/format";
@@ -20,9 +18,12 @@ interface ProductStockChartProps {
 const COLORS = ["#3b82f6", "#8b5cf6", "#10b981", "#f59e0b", "#ef4444", "#06b6d4"];
 
 export function ProductStockChart({ data }: ProductStockChartProps) {
-  const chartData = data.map((d) => ({
-    name: d.category,
-    units: d.units,
+  const totalUnits = data.reduce((sum, item) => sum + item.units, 0);
+
+  const chartData = data.map((item) => ({
+    name: item.category,
+    units: item.units,
+    share: totalUnits > 0 ? (item.units / totalUnits) * 100 : 0,
   }));
 
   return (
@@ -31,42 +32,51 @@ export function ProductStockChart({ data }: ProductStockChartProps) {
         <h3 className="text-base font-semibold text-slate-900">Product Stock</h3>
         <p className="text-xs text-slate-500">Units sold by category</p>
       </div>
-      <div className="h-72 w-full">
+      <div className="h-80 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={chartData}
-            layout="vertical"
-            margin={{ top: 0, right: 16, left: 8, bottom: 0 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
-            <XAxis
-              type="number"
-              tick={{ fontSize: 11, fill: "#64748b" }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              type="category"
-              dataKey="name"
-              width={90}
-              tick={{ fontSize: 11, fill: "#64748b" }}
-              axisLine={false}
-              tickLine={false}
-            />
+          <PieChart>
+            <Pie
+              data={chartData}
+              dataKey="units"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              innerRadius={55}
+              outerRadius={95}
+              paddingAngle={2}
+              label={({ name, percent }) =>
+                (percent ?? 0) >= 0.08
+                  ? `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                  : ""
+              }
+              labelLine={false}
+            >
+              {chartData.map((_, index) => (
+                <Cell key={index} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
             <Tooltip
-              formatter={(value) => [formatNumber(Number(value)), "Units sold"]}
+              formatter={(value, _name, item) => {
+                const share = item?.payload?.share ?? 0;
+                return [
+                  `${formatNumber(Number(value))} units (${share.toFixed(1)}%)`,
+                  item?.payload?.name ?? "Category",
+                ];
+              }}
               contentStyle={{
                 borderRadius: "8px",
                 border: "1px solid #e2e8f0",
                 fontSize: "12px",
               }}
             />
-            <Bar dataKey="units" radius={[0, 4, 4, 0]} barSize={20}>
-              {chartData.map((_, index) => (
-                <Cell key={index} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Bar>
-          </BarChart>
+            <Legend
+              verticalAlign="bottom"
+              height={36}
+              formatter={(value) => (
+                <span className="text-xs text-slate-600">{value}</span>
+              )}
+            />
+          </PieChart>
         </ResponsiveContainer>
       </div>
     </div>

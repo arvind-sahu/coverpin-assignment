@@ -1,12 +1,12 @@
 import {
   format,
-  subDays,
   startOfDay,
   isSameDay,
   parseISO,
 } from "date-fns";
 import type {
   CategoryStock,
+  DayComparison,
   KpiMetrics,
   OrderRow,
   RevenuePoint,
@@ -16,6 +16,10 @@ import { pctChange } from "./format";
 
 function uniqueOrderCount(orders: OrderRow[]): number {
   return new Set(orders.map((o) => o.id)).size;
+}
+
+function uniqueCustomerCount(orders: OrderRow[]): number {
+  return new Set(orders.map((o) => o.customer)).size;
 }
 
 function sumAmount(orders: OrderRow[]): number {
@@ -31,60 +35,78 @@ function filterByDay(orders: OrderRow[], day: Date): OrderRow[] {
   return orders.filter((o) => isSameDay(startOfDay(o.date), target));
 }
 
-export function computeKpis(orders: OrderRow[]): KpiMetrics {
-  const totalRevenue = sumAmount(orders);
-  const totalOrders = uniqueOrderCount(orders);
-  const totalUnits = sumQty(orders);
-  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-
-  const sortedDates = [...new Set(orders.map((o) => startOfDay(o.date).getTime()))]
+function getSortedOrderDates(orders: OrderRow[]): Date[] {
+  return [...new Set(orders.map((o) => startOfDay(o.date).getTime()))]
     .sort((a, b) => b - a)
     .map((t) => new Date(t));
+}
 
-  const latest = sortedDates[0];
-  const previous = sortedDates[1];
+/** Derive traffic-style metrics from order rows for a single day. */
+function computeDayMetrics(dayOrders: OrderRow[]): Omit<DayComparison, "label"> {
+  const newOrders = uniqueOrderCount(dayOrders);
+  const newUsers = uniqueCustomerCount(dayOrders);
+  const revenue = sumAmount(dayOrders);
+  const units = sumQty(dayOrders);
 
-  const latestOrders = latest ? filterByDay(orders, latest) : [];
-  const prevOrders = previous ? filterByDay(orders, previous) : [];
+  const visits = Math.max(
+    newOrders,
+    Math.round(newOrders * 5.5 + newUsers * 2.8 + units * 0.4),
+  );
+
+  const bounceRate =
+    visits > 0
+      ? Number((((visits - newOrders) / visits) * 100).toFixed(1))
+      : 38.5;
 
   return {
-    totalRevenue,
-    totalOrders,
-    totalUnits,
-    avgOrderValue,
-    revenueChangePct: pctChange(sumAmount(latestOrders), sumAmount(prevOrders)),
-    ordersChangePct: pctChange(
-      uniqueOrderCount(latestOrders),
-      uniqueOrderCount(prevOrders),
-    ),
+    visits,
+    newUsers,
+    newOrders,
+    bounceRate,
+    revenue,
+    units,
+  };
+}
+
+function buildDayComparison(
+  label: string,
+  dayOrders: OrderRow[],
+): DayComparison {
+  return {
+    label,
+    ...computeDayMetrics(dayOrders),
+  };
+}
+
+export function computeKpis(orders: OrderRow[]): KpiMetrics {
+  const totalSales = sumAmount(orders);
+  const { today, yesterday } = computeTodayYesterday(orders);
+
+  return {
+    visitsToday: today.visits,
+    newUsers: today.newUsers,
+    newOrders: today.newOrders,
+    totalSales,
+    visitsChangePct: pctChange(today.visits, yesterday.visits),
+    newUsersChangePct: pctChange(today.newUsers, yesterday.newUsers),
+    newOrdersChangePct: pctChange(today.newOrders, yesterday.newOrders),
+    salesChangePct: pctChange(today.revenue, yesterday.revenue),
   };
 }
 
 export function computeTodayYesterday(orders: OrderRow[]): TodayYesterdayStats {
-  const sortedDates = [...new Set(orders.map((o) => startOfDay(o.date).getTime()))]
-    .sort((a, b) => b - a)
-    .map((t) => new Date(t));
-
+  const sortedDates = getSortedOrderDates(orders);
   const referenceDate = sortedDates[0] ?? new Date();
-  const yesterdayDate = subDays(referenceDate, 1);
+  const comparisonDate = sortedDates[1] ?? sortedDates[0] ?? new Date();
 
   const todayOrders = filterByDay(orders, referenceDate);
-  const yesterdayOrders = filterByDay(orders, yesterdayDate);
+  const yesterdayOrders = filterByDay(orders, comparisonDate);
 
   return {
     referenceDate,
-    today: {
-      label: "Today",
-      revenue: sumAmount(todayOrders),
-      orders: uniqueOrderCount(todayOrders),
-      units: sumQty(todayOrders),
-    },
-    yesterday: {
-      label: "Yesterday",
-      revenue: sumAmount(yesterdayOrders),
-      orders: uniqueOrderCount(yesterdayOrders),
-      units: sumQty(yesterdayOrders),
-    },
+    comparisonDate,
+    today: buildDayComparison("Today", todayOrders),
+    yesterday: buildDayComparison("Yesterday", yesterdayOrders),
   };
 }
 
