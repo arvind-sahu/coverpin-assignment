@@ -43,11 +43,14 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       const storedIsSampleData = localStorage.getItem("isSampleData");
 
       if (storedOrders && storedIsSampleData === "false") {
-        const parsed = JSON.parse(storedOrders) as any[];
+        const parsed = JSON.parse(storedOrders) as (Omit<OrderRow, "date"> & {
+          date: string;
+        })[];
         const ordersWithDates = parsed.map((o) => ({
           ...o,
           date: new Date(o.date),
         }));
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setOrders(ordersWithDates);
         setFileName(storedFileName);
         setIsSampleData(false);
@@ -67,7 +70,9 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
           const storedIsSampleData = localStorage.getItem("isSampleData");
 
           if (storedOrders && storedIsSampleData === "false") {
-            const parsed = JSON.parse(storedOrders) as any[];
+            const parsed = JSON.parse(storedOrders) as (Omit<OrderRow, "date"> & {
+              date: string;
+            })[];
             const ordersWithDates = parsed.map((o) => ({
               ...o,
               date: new Date(o.date),
