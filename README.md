@@ -131,21 +131,23 @@ Manual deploy: **Actions → Deploy to AWS Amplify → Run workflow**.
 
 ### GitHub secrets (required for CD)
 
-Set these in **Settings → Secrets and variables → Actions**:
+These are configured in **Settings → Secrets and variables → Actions**:
 
 | Secret | Description |
 |--------|-------------|
-| `AWS_ACCESS_KEY_ID` | IAM user access key with Amplify permissions |
+| `AWS_ACCESS_KEY_ID` | IAM user `github-actions-coverpin` access key |
 | `AWS_SECRET_ACCESS_KEY` | IAM user secret key |
-| `AWS_REGION` | e.g. `ap-south-1` |
-| `AMPLIFY_APP_ID` | Amplify app ID from AWS Console or CLI |
+| `AWS_REGION` | `ap-south-1` |
+| `AMPLIFY_APP_ID` | `d1y04k57dveds6` |
 | `AMPLIFY_BRANCH_NAME` | Optional; defaults to `main` |
+
+The IAM policy (least privilege) is in [`scripts/iam-amplify-deploy-policy.json`](scripts/iam-amplify-deploy-policy.json).
 
 ### AWS Amplify
 
 The app uses **WEB_COMPUTE** (Next.js SSR). Build settings live in [`amplify.yml`](amplify.yml) at the repo root.
 
-**Live URL:** `https://main.<app-id>.amplifyapp.com`
+**Live URL:** [https://main.d1y04k57dveds6.amplifyapp.com](https://main.d1y04k57dveds6.amplifyapp.com)
 
 ### Alternative: Vercel (free tier)
 

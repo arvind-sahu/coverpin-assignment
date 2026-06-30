@@ -1,0 +1,19 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AmplifyDeploy",
+      "Effect": "Allow",
+      "Action": [
+        "amplify:StartJob",
+        "amplify:GetApp",
+        "amplify:GetJob",
+        "amplify:ListJobs"
+      ],
+      "Resource": [
+        "arn:aws:amplify:ap-south-1:837734786228:apps/d1y04k57dveds6",
+        "arn:aws:amplify:ap-south-1:837734786228:apps/d1y04k57dveds6/*"
+      ]
+    }
+  ]
+}
