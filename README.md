@@ -4,7 +4,7 @@ A single-page analytics dashboard with Excel upload, built as a **Next.js (React
 
 ## Live demo
 
-> Deploy to Vercel (recommended) or AWS Amplify — see [Deployment](#deployment) below.
+> **AWS Amplify:** `https://main.<app-id>.amplifyapp.com` (see [CI/CD and deployment](#cicd-and-deployment))
 
 ## Stack choice
 
@@ -117,33 +117,45 @@ src/
 └── types/
 ```
 
-## Deployment
+## CI/CD and deployment
 
-### Vercel (recommended, free tier)
+### Pipeline overview
+
+| Stage | Trigger | What runs |
+|-------|---------|-----------|
+| **CI** | Push or PR to `main` | `npm ci` → lint → build (GitHub Actions) |
+| **CD** | CI succeeds on `main` | Triggers AWS Amplify release job (GitHub Actions) |
+| **Build** | Amplify release job | Uses `amplify.yml` → `npm ci` → `npm run build` → deploy `.next` (SSR) |
+
+Manual deploy: **Actions → Deploy to AWS Amplify → Run workflow**.
+
+### GitHub secrets (required for CD)
+
+Set these in **Settings → Secrets and variables → Actions**:
+
+| Secret | Description |
+|--------|-------------|
+| `AWS_ACCESS_KEY_ID` | IAM user access key with Amplify permissions |
+| `AWS_SECRET_ACCESS_KEY` | IAM user secret key |
+| `AWS_REGION` | e.g. `ap-south-1` |
+| `AMPLIFY_APP_ID` | Amplify app ID from AWS Console or CLI |
+| `AMPLIFY_BRANCH_NAME` | Optional; defaults to `main` |
+
+### AWS Amplify
+
+The app uses **WEB_COMPUTE** (Next.js SSR). Build settings live in [`amplify.yml`](amplify.yml) at the repo root.
+
+**Live URL:** `https://main.<app-id>.amplifyapp.com`
+
+### Alternative: Vercel (free tier)
 
 1. Push this repo to GitHub.
 2. Import the project at [vercel.com/new](https://vercel.com/new).
 3. Framework preset: **Next.js** — no env vars needed.
-4. Deploy.
-
-Or with CLI:
 
 ```bash
 npx vercel
 ```
-
-### AWS Amplify Hosting (free tier eligible)
-
-1. Push to GitHub.
-2. AWS Console → **Amplify** → **Host web app** → connect repo.
-3. Build settings (auto-detected for Next.js):
-
-   - Build command: `npm run build`
-   - Output: `.next` (Amplify SSR for Next.js)
-
-### AWS S3 + CloudFront (static export)
-
-This app uses client-only features (file upload, Recharts). For a static export you'd need `output: 'export'` in `next.config` — the default SSR deployment on Vercel/Amplify is simpler.
 
 ## License
 

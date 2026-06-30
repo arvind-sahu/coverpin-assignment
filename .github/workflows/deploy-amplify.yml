@@ -1,0 +1,44 @@
+name: Deploy to AWS Amplify
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Trigger Amplify deployment
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'ap-south-1' }}
+
+      - name: Start Amplify release job
+        run: |
+          aws amplify start-job \
+            --app-id "${{ secrets.AMPLIFY_APP_ID }}" \
+            --branch-name "${{ secrets.AMPLIFY_BRANCH_NAME || 'main' }}" \
+            --job-type RELEASE
+
+      - name: Print app URL
+        run: |
+          DOMAIN=$(aws amplify get-app \
+            --app-id "${{ secrets.AMPLIFY_APP_ID }}" \
+            --query 'app.defaultDomain' \
+            --output text)
+          BRANCH="${{ secrets.AMPLIFY_BRANCH_NAME || 'main' }}"
+          echo "Deployed to: https://${BRANCH}.${DOMAIN}"
