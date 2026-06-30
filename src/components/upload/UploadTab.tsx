@@ -199,6 +199,15 @@ export function UploadTab() {
             onClick={(e) => e.stopPropagation()}
           >
             Download sample .xlsx
+          </a>{" "}
+          ·{" "}
+          <a
+            href="/large-orders.xlsx"
+            download
+            className="font-medium text-blue-600 hover:underline"
+            onClick={(e) => e.stopPropagation()}
+          >
+            Download large test .xlsx (2,000 rows)
           </a>
         </p>
       </div>
