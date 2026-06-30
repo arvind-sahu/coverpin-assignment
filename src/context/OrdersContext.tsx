@@ -6,6 +6,7 @@ import {
   useContext,
   useMemo,
   useState,
+  useEffect,
   type ReactNode,
 } from "react";
 import type { OrderRow } from "@/types/order";
@@ -22,6 +23,7 @@ interface OrdersContextValue {
   uploadMessage: string | null;
   uploadFile: (file: File) => Promise<void>;
   resetUploadStatus: () => void;
+  resetToSampleData: () => void;
 }
 
 const OrdersContext = createContext<OrdersContextValue | null>(null);
@@ -32,6 +34,63 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   const [isSampleData, setIsSampleData] = useState(true);
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>("idle");
   const [uploadMessage, setUploadMessage] = useState<string | null>(null);
+
+  // Load initial data from localStorage on client-side mount
+  useEffect(() => {
+    try {
+      const storedOrders = localStorage.getItem("orders");
+      const storedFileName = localStorage.getItem("fileName");
+      const storedIsSampleData = localStorage.getItem("isSampleData");
+
+      if (storedOrders && storedIsSampleData === "false") {
+        const parsed = JSON.parse(storedOrders) as any[];
+        const ordersWithDates = parsed.map((o) => ({
+          ...o,
+          date: new Date(o.date),
+        }));
+        setOrders(ordersWithDates);
+        setFileName(storedFileName);
+        setIsSampleData(false);
+      }
+    } catch (e) {
+      console.error("Failed to load orders from localStorage on mount:", e);
+    }
+  }, []);
+
+  // Synchronize state across browser tabs
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "orders" || e.key === "fileName" || e.key === "isSampleData") {
+        try {
+          const storedOrders = localStorage.getItem("orders");
+          const storedFileName = localStorage.getItem("fileName");
+          const storedIsSampleData = localStorage.getItem("isSampleData");
+
+          if (storedOrders && storedIsSampleData === "false") {
+            const parsed = JSON.parse(storedOrders) as any[];
+            const ordersWithDates = parsed.map((o) => ({
+              ...o,
+              date: new Date(o.date),
+            }));
+            setOrders(ordersWithDates);
+            setFileName(storedFileName);
+            setIsSampleData(false);
+          } else {
+            setOrders(SAMPLE_ORDERS);
+            setFileName(null);
+            setIsSampleData(true);
+          }
+        } catch (err) {
+          console.error("Failed to synchronize orders across tabs:", err);
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
   const uploadFile = useCallback(async (file: File) => {
     setUploadStatus("loading");
@@ -55,11 +114,36 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     setUploadMessage(
       `Successfully loaded ${result.rowCount} order line${result.rowCount === 1 ? "" : "s"} from "${result.fileName}".`,
     );
+
+    // Persist to localStorage
+    try {
+      localStorage.setItem("orders", JSON.stringify(result.orders));
+      localStorage.setItem("fileName", result.fileName);
+      localStorage.setItem("isSampleData", "false");
+    } catch (e) {
+      console.error("Failed to save orders to localStorage:", e);
+    }
   }, []);
 
   const resetUploadStatus = useCallback(() => {
     setUploadStatus("idle");
     setUploadMessage(null);
+  }, []);
+
+  const resetToSampleData = useCallback(() => {
+    setOrders(SAMPLE_ORDERS);
+    setFileName(null);
+    setIsSampleData(true);
+    setUploadStatus("idle");
+    setUploadMessage(null);
+
+    try {
+      localStorage.removeItem("orders");
+      localStorage.removeItem("fileName");
+      localStorage.removeItem("isSampleData");
+    } catch (e) {
+      console.error("Failed to clear orders from localStorage:", e);
+    }
   }, []);
 
   const value = useMemo(
@@ -71,6 +155,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       uploadMessage,
       uploadFile,
       resetUploadStatus,
+      resetToSampleData,
     }),
     [
       orders,
@@ -80,6 +165,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       uploadMessage,
       uploadFile,
       resetUploadStatus,
+      resetToSampleData,
     ],
   );
 
