@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
 import {
   AlertCircle,
@@ -11,8 +12,14 @@ import {
 import { useOrders } from "@/context/OrdersContext";
 
 export function UploadTab() {
-  const { uploadFile, uploadStatus, uploadMessage, resetUploadStatus } =
-    useOrders();
+  const {
+    uploadFile,
+    uploadStatus,
+    uploadMessage,
+    resetUploadStatus,
+    resetToSampleData,
+    isSampleData,
+  } = useOrders();
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -54,6 +61,20 @@ export function UploadTab() {
           updates immediately — no page reload.
         </p>
       </div>
+
+      {!isSampleData && uploadStatus !== "success" && (
+        <div className="flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <div>
+            Currently using uploaded data.
+          </div>
+          <button
+            onClick={resetToSampleData}
+            className="rounded-md bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800 hover:bg-emerald-200 transition-colors cursor-pointer"
+          >
+            Reset to Sample Data
+          </button>
+        </div>
+      )}
 
       <div
         role="button"
@@ -102,11 +123,19 @@ export function UploadTab() {
       {uploadStatus === "success" && uploadMessage && (
         <div className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
-          <div>
+          <div className="flex-1">
             <p className="font-medium">Upload successful</p>
             <p className="mt-0.5 whitespace-pre-line">{uploadMessage}</p>
-            <p className="mt-2 text-emerald-700">
-              Switch to the Dashboard tab to see updated analytics.
+            <p className="mt-2 text-emerald-700 flex flex-wrap gap-x-4 gap-y-1">
+              <Link href="/dashboard" className="font-medium underline">
+                Go to Dashboard
+              </Link>
+              <button
+                onClick={resetToSampleData}
+                className="font-medium underline hover:text-emerald-900 cursor-pointer"
+              >
+                Reset to Sample Data
+              </button>
             </p>
           </div>
         </div>

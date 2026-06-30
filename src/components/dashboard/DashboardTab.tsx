@@ -15,7 +15,7 @@ import { ProductStockChart } from "./ProductStockChart";
 import { OrderListTable } from "./OrderListTable";
 
 export function DashboardTab() {
-  const { orders, isSampleData, fileName } = useOrders();
+  const { orders, isSampleData, fileName, resetToSampleData } = useOrders();
 
   const kpis = useMemo(() => computeKpis(orders), [orders]);
   const todayYesterday = useMemo(() => computeTodayYesterday(orders), [orders]);
@@ -31,9 +31,17 @@ export function DashboardTab() {
         </div>
       )}
       {!isSampleData && fileName && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          Dashboard reflects data from <strong>{fileName}</strong> ({orders.length}{" "}
-          rows).
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <div>
+            Dashboard reflects data from <strong>{fileName}</strong> ({orders.length}{" "}
+            rows).
+          </div>
+          <button
+            onClick={resetToSampleData}
+            className="self-start sm:self-auto rounded-md bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800 hover:bg-emerald-200 transition-colors cursor-pointer"
+          >
+            Reset to Sample Data
+          </button>
         </div>
       )}
 
